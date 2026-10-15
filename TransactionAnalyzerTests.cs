@@ -1,4 +1,4 @@
-using TransactionLib;
+﻿using TransactionLib;
 
 public class TransactionAnalyzerTests
 {
@@ -12,7 +12,7 @@ public class TransactionAnalyzerTests
             Timestamp = DateTime.Now
         };
 
-        Assert.StartsWith("Ошибка", TransactionAnalyzer.AnalyzeTransaction(tx));
+        Assert.Equal("Ошибка: неизвестный тип транзакции.", TransactionAnalyzer.AnalyzeTransaction(tx));
     }
 
     [Fact]
@@ -26,7 +26,7 @@ public class TransactionAnalyzerTests
             IsVipClient = false
         };
 
-        Assert.Contains("превышено количество", TransactionAnalyzer.AnalyzeTransaction(tx));
+        Assert.Equal("Ограничение: превышено количество операций в день.", TransactionAnalyzer.AnalyzeTransaction(tx));
     }
 
     [Fact]
@@ -56,7 +56,7 @@ public class TransactionAnalyzerTests
             IsVipClient = false
         };
 
-        Assert.StartsWith("Комиссия", TransactionAnalyzer.AnalyzeTransaction(tx));
+        Assert.Equal("Комиссия: 1% за перевод между типами счетов.", TransactionAnalyzer.AnalyzeTransaction(tx));
     }
 
     [Fact]
@@ -70,7 +70,7 @@ public class TransactionAnalyzerTests
             IsVipClient = false
         };
 
-        Assert.StartsWith("Ограничение: превышена", TransactionAnalyzer.AnalyzeTransaction(tx));
+        Assert.Equal("Ограничение: превышена дневная сумма транзакций.", TransactionAnalyzer.AnalyzeTransaction(tx));
     }
 
     [Fact]
@@ -84,7 +84,7 @@ public class TransactionAnalyzerTests
             IsInternal = true
         };
 
-        Assert.StartsWith("Ограничение: банкоматы", TransactionAnalyzer.AnalyzeTransaction(tx));
+        Assert.Equal("Ограничение: банкоматы не обрабатывают крупные суммы.", TransactionAnalyzer.AnalyzeTransaction(tx));
     }
 
     [Fact]
@@ -114,7 +114,7 @@ public class TransactionAnalyzerTests
             Timestamp = DateTime.Now
         };
 
-        Assert.StartsWith("Ошибка", TransactionAnalyzer.AnalyzeTransaction(tx));
+        Assert.Equal("Ошибка: сумма должна быть положительной.", TransactionAnalyzer.AnalyzeTransaction(tx));
     }
 
     // ===================================================================
