@@ -134,6 +134,18 @@ public class TransactionAnalyzerTests
     }
 
     [Fact]
+    public void UnknownKindReturnsExactMessage()
+    {
+        var tx = new Transaction
+        {
+            Amount = 100m,
+            Kind = TransactionKind.Unknown,
+        };
+
+        Assert.Equal("Ошибка: неизвестный тип транзакции.", TransactionAnalyzer.AnalyzeTransaction(tx));
+    }
+
+    [Fact]
     public void DailyCountEqualTenIsAllowed()
     {
         var tx = new Transaction
@@ -144,6 +156,19 @@ public class TransactionAnalyzerTests
         };
 
         Assert.Equal("Транзакция допустима.", TransactionAnalyzer.AnalyzeTransaction(tx));
+    }
+
+    [Fact]
+    public void DailyCountElevenRejectedWithExactMessage()
+    {
+        var tx = new Transaction
+        {
+            Amount = 100m,
+            Kind = TransactionKind.Deposit,
+            DailyTransactionCount = 11,
+        };
+
+        Assert.Equal("Ограничение: превышено количество операций в день.", TransactionAnalyzer.AnalyzeTransaction(tx));
     }
 
     [Fact]
@@ -160,6 +185,19 @@ public class TransactionAnalyzerTests
     }
 
     [Fact]
+    public void DailyTotalOneOverLimitRejected()
+    {
+        var tx = new Transaction
+        {
+            Amount = 500_001m,
+            Kind = TransactionKind.Deposit,
+            DailyTransactionTotal = 1_000_000m,
+        };
+
+        Assert.Equal("Ограничение: превышена дневная сумма транзакций.", TransactionAnalyzer.AnalyzeTransaction(tx));
+    }
+
+    [Fact]
     public void AtmExactlyHundredThousandAllowed()
     {
         var tx = new Transaction
@@ -170,6 +208,19 @@ public class TransactionAnalyzerTests
         };
 
         Assert.Equal("Транзакция допустима.", TransactionAnalyzer.AnalyzeTransaction(tx));
+    }
+
+    [Fact]
+    public void AtmAboveLimitRejectedExactMessage()
+    {
+        var tx = new Transaction
+        {
+            Amount = 100_001m,
+            Kind = TransactionKind.Deposit,
+            Channel = "ATM",
+        };
+
+        Assert.Equal("Ограничение: банкоматы не обрабатывают крупные суммы.", TransactionAnalyzer.AnalyzeTransaction(tx));
     }
 
     [Fact]
@@ -197,6 +248,37 @@ public class TransactionAnalyzerTests
             IsInternal = false,
             FromAccountType = "Текущий",
             ToAccountType = "Текущий",
+        };
+
+        Assert.Equal("Транзакция допустима.", TransactionAnalyzer.AnalyzeTransaction(tx));
+    }
+
+    [Fact]
+    public void CommissionExactMessage()
+    {
+        var tx = new Transaction
+        {
+            Amount = 1_000m,
+            Kind = TransactionKind.Transfer,
+            FromAccountType = "Текущий",
+            ToAccountType = "Сберегательный",
+        };
+
+        Assert.Equal("Комиссия: 1% за перевод между типами счетов.", TransactionAnalyzer.AnalyzeTransaction(tx));
+    }
+
+    [Fact]
+    public void NoCommissionForInternalTransferDifferentTypes()
+    {
+        var tx = new Transaction
+        {
+            Amount = 1_000m,
+            Kind = TransactionKind.Transfer,
+            IsInternal = true,
+            FromAccountType = "Текущий",
+            ToAccountType = "Сберегательный",
+            Timestamp = new DateTime(2026, 10, 12),
+            Channel = "Office",
         };
 
         Assert.Equal("Транзакция допустима.", TransactionAnalyzer.AnalyzeTransaction(tx));
